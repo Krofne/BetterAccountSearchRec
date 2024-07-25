@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better Account Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333; 
+            color: #f9f9f9; 
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            color: #4CAF50;
+            margin: 30px;
+            font-size: 48px;
+        }
+        input[type="text"] {
+            padding: 12px;
+            border: 3px solid #4CAF50;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            margin: 20px 0;
+            font-size: 18px;
+            background-color: #555; /* Darker input field */
+            color: #f9f9f9; /* Light text color for input */
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .response-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .banner-container {
+            width: 80%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        .banner {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+        }
+        .profile-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            max-width: 800px;
+            width: 100%;
+            justify-content: center;
+        }
+        .profileImage {
+            width: 150px;
+            height: 150px;
+            border: 3px solid #ddd;
+            margin-right: 20px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .profile-details {
+            text-align: left;
+            font-size: 20px;
+        }
+        .profile-details p {
+            margin: 10px 0;
+        }
+        .text-response {
+            white-space: pre-wrap;
+            text-align: left;
+            background: #444; 
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            width: 80%;
+            max-width: 800px;
+            margin: 20px 0;
+            font-size: 16px;
+            color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Better Account Search</h1>
+    <input type="text" id="username" placeholder="Enter username">
+    <button onclick="fetchData()">Search</button>
+    <button id="viewProfileButton" style="display: none;" onclick="viewProfile()">View on rec.net</button>
+
+    <div class="response-container">
+        <div class="banner-container">
+            <img id="bannerImage" class="banner" src="" alt="Banner Image">
+        </div>
+        
+        <div class="profile-container">
+            <img id="profileImage" class="profileImage" src="" alt="Profile Image">
+            <div class="profile-details">
+                <p id="displayName"></p>
+                <p id="usernameDisplay"></p>
+                <p id="accountID"></p>
+                <p id="createdAt"></p>
+            </div>
+        </div>
+
+        <div id="response" class="text-response"></div>
+    </div>
+
+    <script>
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const date = new Date(dateString);
+            return date.toLocaleDateString(undefined, options);
+        }
+
+        function fetchData() {
+            const username = document.getElementById('username').value;
+            const proxyUrl = 'https://api.allorigins.win/get?url=';
+            const apiUrl = encodeURIComponent(`https://apim.rec.net/accounts/account?username=${username}`);
+
+            fetch(proxyUrl + apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const jsonData = JSON.parse(data.contents);
+                    document.getElementById('response').textContent = JSON.stringify(jsonData, null, 2);
+
+                    // Embed images
+                    const baseUrl = 'https://img.rec.net/';
+                    document.getElementById('profileImage').src = baseUrl + jsonData.profileImage;
+                    document.getElementById('bannerImage').src = baseUrl + jsonData.bannerImage;
+
+                    // Update profile details
+                    document.getElementById('displayName').textContent = `Display Name: ${jsonData.displayName}`;
+                    document.getElementById('usernameDisplay').textContent = `Username: ${jsonData.username}`;
+                    document.getElementById('accountID').textContent = `Account ID: ${jsonData.accountId}`;
+                    document.getElementById('createdAt').textContent = `Join Date: ${formatDate(jsonData.createdAt)}`;
+
+                    // Show the "View on rec.net" button
+                    document.getElementById('viewProfileButton').style.display = 'inline-block';
+                })
+                .catch(error => {
+                    document.getElementById('response').textContent = 'Error: ' + error;
+                    document.getElementById('profileImage').src = '';
+                    document.getElementById('bannerImage').src = '';
+                    document.getElementById('displayName').textContent = '';
+                    document.getElementById('usernameDisplay').textContent = '';
+                    document.getElementById('accountID').textContent = '';
+                    document.getElementById('createdAt').textContent = '';
+                });
+        }
+
+        function viewProfile() {
+            const username = document.getElementById('username').value;
+            window.open(`https://rec.net/user/${username}`, '_blank');
+        }
+    </script>
+</body>
+</html>
